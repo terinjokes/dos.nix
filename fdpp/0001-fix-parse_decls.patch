@@ -1,0 +1,37 @@
+diff --git a/fdpp/parsers/parse_decls.sh b/fdpp/parsers/parse_decls.sh
+index c15cdbe..c9752c4 100755
+--- a/fdpp/parsers/parse_decls.sh
++++ b/fdpp/parsers/parse_decls.sh
+@@ -4,7 +4,7 @@ set -e
+ set -o pipefail
+ 
+ gen_calls_tmp() {
+-	grep ASMCFUNC $1 | cpp -P -I $srcdir -include unfar.h | nl -n ln -v 0
++	grep ASMCFUNC $1 | cpp -E -P -I $srcdir -include unfar.h | nl -n ln -v 0
+ }
+ 
+ gen_plt_inc() {
+@@ -14,7 +14,7 @@ gen_plt_inc() {
+ 
+ gen_asms_tmp() {
+ 	grep 'ASMFUNC\|ASMPASCAL' $1 | grep -v "//" | \
+-		cpp -P -I $srcdir -include unfar.h | nl -n ln -v 0
++		cpp -E -P -I $srcdir -include unfar.h | nl -n ln -v 0
+ }
+ 
+ gen_plt_asmc() {
+@@ -22,13 +22,7 @@ gen_plt_asmc() {
+ }
+ 
+ gen_plt_asmp() {
+-	set +e
+-	GSED=`which gsed 2>/dev/null`
+-	set -e
+-	if [ -z "$GSED" ]; then
+-		GSED=`which sed 2>/dev/null`
+-	fi
+-	grep ASMPASCAL $1 | $GSED -E 's/([0-9]+).+ ([^ \(]+) *\(.+/asmpsym \U\2, \1/'
++	grep ASMPASCAL $1 | sed -E 's/([0-9]+).+ ([^ \(]+) *\(.+/asmpsym \U\2, \1/'
+ }
+ 
+ case "$1" in

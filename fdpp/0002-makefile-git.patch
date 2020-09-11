@@ -1,0 +1,14 @@
+diff --git a/fdpp/makefile b/fdpp/makefile
+index df1afa4..834598c 100644
+--- a/fdpp/makefile
++++ b/fdpp/makefile
+@@ -28,8 +28,7 @@ GIT_REV := $(shell $(srcdir)/git-rev.sh)
+ 
+ CPPFLAGS += -I . -I $(FD_EXT_H) -I $(SRC) -I $(srcdir) \
+     -DFDPPDATADIR=$(DATADIR)/fdpp \
+-    -DKRNL_NAME=$(TARGET).sys -DKRNL_MAP_NAME=$(TARGET).map \
+-    -DKERNEL_VERSION="$(VERSION) [GIT: `git describe`]"
++    -DKRNL_NAME=$(TARGET).sys -DKRNL_MAP_NAME=$(TARGET).map
+ NASMFLAGS += -i$(SRC)
+ 
+ # *List Macros*
