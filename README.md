@@ -18,7 +18,7 @@ let
 in
   {
     nixpkgs.overlays = [ dosOverlay ];
-    environment.systemPackages = with pkgs; [ fdpp ];
+    environment.systemPackages = with pkgs; [ dosemu2 ];
     
     # ...
   }
@@ -28,10 +28,12 @@ in
 
 This overlay provides the following packages:
 
-| Package      | Description       |
-| -------      | -----------       |
-| [fdpp][fdpp] | A 64-bit DOS core |
+| Package            | Description            |
+| -------            | -----------            |
+| [dosemu2][dosemu2] | DOS Emulator for Linux |
+| [fdpp][fdpp]       | A 64-bit DOS core      |
 
 
 [overlays]: https://nixos.wiki/wiki/Overlays
+[dosemu2]: https://github.com/dosemu2/dosemu2
 [fdpp]: https://github.com/dosemu2/fdpp
