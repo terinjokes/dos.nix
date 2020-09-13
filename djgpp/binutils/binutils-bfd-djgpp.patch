@@ -1,0 +1,1687 @@
+#  DJGPP specific changes to libbfd and libiberty shared
+#  by the DJGPP ports of binutils and gdb.
+
+
+2020-03-01  Juan Manuel Guerrero  <juan.guerrero@gmx.de>
+
+	* bfd/bfd-in.h [__DJGPP__]:  Provide the declaration of
+	coff_64k_relocation_enabled.
+
+	* bfd/cache.c (bfd_cache_max_open) [__DJGPP__]:  Do not use getrlimit
+	to check for the amount of files that can be opened.  Use a fixed value
+	of 16.
+
+	* bfd/coff-go32.c: Define COFF_GO32 macro.
+	Add _bfd_go32_mkobject prototype.
+	Define coff_mkobject macro to _bfd_go32_mkobject.
+	Define IMAGE_SCN_LNK_NRELOC_OVFL.  Signals that relocation counter
+	has overflown.
+
+	* bfd/coff-stgo32.c: Add _bfd_go32_mkobject prototype.
+	Define coff_mkobject macro to _bfd_go32_mkobject.
+	Add _bfd_go32_mkobject definition.
+	Define IMAGE_SCN_LNK_NRELOC_OVFL.  Signals that relocation counter
+	has overflown.
+	(_bfd_go32_mkobject):  Set go32 flag to 1 or 0 according to the value
+	of coff_64k_relocation_enabled.
+
+	* bfd/coffcode.h [COFF_GO32_EXE, COFF_GO32, COFF_WITH_PE]: Define new
+	macro COFF_WITH_PE_OR_COFF_WITH_EXTENDED_RELOC_COUNTER.
+	(coff_write_relocs, coff_write_object_contents): Replace COFF_WITH_PE
+	with COFF_WITH_PE_OR_COFF_WITH_EXTENDED_RELOC_COUNTER where appropriate
+	and add obj_go32 to the check if relocation counter >= 0xFFFF.
+	(coff_set_alignment_hook): Implementation for DJGPP.
+	[COFF_GO32_EXE, COFF_GO32]:  Define COFF_PAD_SECTION_HEADERS.
+	Taken from bnu219s2.zip.
+	(coff_set_alignment_hook) [COFF_GO32_EXE, COFF_GO32]: Use
+	coff_64k_relocation_enabled where appropriate to enable/disable the
+	coff 64k relocation support.
+
+	* bfd/cofflink.c (_bfd_coff_final_link): If it is an obj_go32 allow
+	relocations larger than 65535.
+
+	* bfd/coffswap.h (coff_swap_scnhdr_in) [COFF_GO32_EXE, COFF_GO32]:
+	Iff reading an executable file and iff it is the ".text" section
+	header calculate the number of lines from the 16 bit field of the
+	relocation counter and the 16 bit filed of the line counter.
+	(coff_swap_scnhdr_out) [COFF_GO32_EXE, COFF_GO32]:
+	Use the same Ansatz to identify a .text section of an executable like
+	in coff_swap_scnhdr_in.
+	- Iff building an executable file and iff it is the ".text" section
+	header store the upper 16 bits of the line counter in the relocation
+	counter.
+	- Iff not building an executabe file or iff building an executable file
+	but iff it is not the ".text" section header then:
+	  1) if the relocation counter is greater the 65534 set the relocation
+	     counter to 65535 and set the IMAGE_SCN_LNK_NRELOC_OVFL bit.
+	     The relocation counter overflow is handled elsewhere.
+	  2) if the line counter is greater than 65535 then abort.
+	(coff_swap_scnhdr_in, coff_swap_scnhdr_out) [COFF_GO32_EXE, COFF_GO32]:
+	Use coff_64k_relocation_enabled where appropriate to enable/disable the
+	coff 64k relocation support.
+
+	* bfd/config.in [__DJGPP__]:  Added DJGPP specific macros definitions.
+	They are all NO-OPS for other OSes.
+
+	* bfd/init.c [__DJGPP__]:  Define coff_64k_relocation_enabled.
+	(bfd_init):  Read the environment variable DISABLE_64K_RELOC_SUPPORT
+	to set the value of coff_64k_relocation_enabled.
+
+	* bfd/libcoff-in.h: Define obj_go32 macro.
+	Add go32 flag to struct coff_tdata.  1 if DJGPP else 0.
+
+	* bfd/Makefile.in:  Force the regenaration of bfd-in2.h to provide the
+	declaration of coff_64k_relocation_enabled.  Force the regenaration of
+	libcoff.h to provide the definition of obj_go32.
+
+	* include/bfdlink.h:  Pacify compiler.
+
+	* include/coff/internal.h:  Pacify compiler.
+
+	* include/simple-object.h:  Pacify compiler.
+
+	* libiberty/config.in [__DJGPP__]:  Added DJGPP specific macros definitions.
+	They are all NO-OPS for other OSes.
+
+	* libiberty/cp-demangle.c (d_demangle_callback, d_expression_1, d_print_comp):
+	Pacify compiler.  Rename functions and variables that shadow the
+	corresponding libc ones.
+        (d_bare_function_type): Pacify compiler.  Rename functions and
+	variables that shadow the corresponding libiberty ones.
+
+	* libiberty/floatformat.c (floatformat_to_double):  Pacify compiler.
+	Rename functions and variables that shadow the corresponding libc ones.
+
+	* libiberty/hashtab.c (find_empty_slot_for_expand, htab_find_with_hash,
+	htab_find_slot_with_hash):  Pacify compiler.  Rename functions and
+	variables that shadow the corresponding libc ones.
+
+	* libiberty/make-relative-prefix.c:  DJGPP specific adjustments.
+	Taken from bnu219s2.zip.
+
+	* libiberty/make-temp-file.c:  DJGPP specific adjustments.
+	Taken from bnu219s2.zip.
+
+	* libiberty/pex-common.c (temp_file, pex_run_in_environment):  Pacify
+	compiler.  Rename functions and variables that shadow the corresponding
+	libc ones.
+
+	* libiberty/simple-object.c (simple_object_copy_lto_debug_sections,
+	handle_lto_debug_sections):  Pacify compiler.  Rename functions and
+	variables that shadow the corresponding libc ones.
+
+	* libiberty/simple-object-coff.c (simple_object_coff_write_to_file):
+	Pacify compiler.  Rename functions and variables that shadow the
+	corresponding libc ones.
+
+	* libiberty/simple-object-elf.c (simple_object_elf_write_to_file):
+	Pacify compiler.  Rename functions and variables that shadow the
+	corresponding libc ones.
+
+	* libiberty/simple-object-mach.c (simple_object_mach_o_segment,
+	simple_object_mach_o_write_segment):  Pacify compiler.  Rename
+	functions and variables that shadow the corresponding libc ones.
+
+	* libiberty/simple-object-xcoff.c (simple_object_xcoff_write_to_file):
+	Pacify compiler.  Rename functions and variables that shadow the
+	corresponding libc ones.
+
+	* libiberty/stack-limit.c (stack_limit_increase):  Pacify compiler.
+	Rename functions and variables that shadow the corresponding libc ones.
+
+
+
+
+
+diff -aprNU5 binutils-2.34.orig/bfd/bfd-in.h binutils-2.34/bfd/bfd-in.h
+--- binutils-2.34.orig/bfd/bfd-in.h	2020-01-18 13:55:46 +0000
++++ binutils-2.34/bfd/bfd-in.h	2020-03-01 19:17:02 +0000
+@@ -562,5 +562,11 @@ extern bfd *bfd_elf_bfd_from_remote_memo
+ struct ecoff_debug_info;
+ struct ecoff_debug_swap;
+ struct ecoff_extr;
+ struct bfd_link_info;
+ struct bfd_link_hash_entry;
++
++/* This controls if the coff 64k relocation support shall be disabled or not.
++   By default always enabled.  */
++#if defined(__DJGPP__) || defined(COFF_GO32_EXE) || defined(COFF_GO32)
++extern bfd_boolean coff_64k_relocation_enabled;
++#endif
+diff -aprNU5 binutils-2.34.orig/bfd/cache.c binutils-2.34/bfd/cache.c
+--- binutils-2.34.orig/bfd/cache.c	2020-01-18 13:55:46 +0000
++++ binutils-2.34/bfd/cache.c	2020-03-01 19:10:00 +0000
+@@ -75,11 +75,11 @@ static int
+ bfd_cache_max_open (void)
+ {
+   if (max_open_files == 0)
+     {
+       int max;
+-#if defined(__sun) && !defined(__sparcv9) && !defined(__x86_64__)
++#if defined(__sun) && !defined(__sparcv9) && !defined(__x86_64__) || defined(__DJGPP__)
+       /* PR ld/19260: 32-bit Solaris has very inelegant handling of the 255
+ 	 file descriptor limit.  The problem is that setrlimit(2) can raise
+ 	 RLIMIT_NOFILE to a value that is not supported by libc, resulting
+ 	 in "Too many open files" errors.  This can happen here even though
+ 	 max_open_files is set to rlim.rlim_cur / 8.  For example, if
+diff -aprNU5 binutils-2.34.orig/bfd/coff-go32.c binutils-2.34/bfd/coff-go32.c
+--- binutils-2.34.orig/bfd/coff-go32.c	2020-01-18 13:55:46 +0000
++++ binutils-2.34/bfd/coff-go32.c	2020-03-01 19:10:00 +0000
+@@ -20,10 +20,11 @@
+    MA 02110-1301, USA.  */
+ 
+ #define TARGET_SYM		i386_coff_go32_vec
+ #define TARGET_NAME		"coff-go32"
+ #define TARGET_UNDERSCORE	'_'
++#define COFF_GO32
+ #define COFF_LONG_SECTION_NAMES
+ #define COFF_SUPPORT_GNU_LINKONCE
+ #define COFF_LONG_FILENAMES
+ 
+ #define COFF_SECTION_ALIGNMENT_ENTRIES \
+@@ -40,6 +41,16 @@
+ { COFF_SECTION_NAME_PARTIAL_MATCH (".debug"), \
+   COFF_ALIGNMENT_FIELD_EMPTY, COFF_ALIGNMENT_FIELD_EMPTY, 0 }, \
+ { COFF_SECTION_NAME_PARTIAL_MATCH (".gnu.linkonce.wi"), \
+   COFF_ALIGNMENT_FIELD_EMPTY, COFF_ALIGNMENT_FIELD_EMPTY, 0 }
+ 
++/* Section contains extended relocations. */
++#define IMAGE_SCN_LNK_NRELOC_OVFL  0x01000000
++
++#include "sysdep.h"
++#include "bfd.h"
++
++bfd_boolean _bfd_go32_mkobject (bfd *abfd);
++
++#define coff_mkobject  _bfd_go32_mkobject
++
+ #include "coff-i386.c"
+diff -aprNU5 binutils-2.34.orig/bfd/coff-stgo32.c binutils-2.34/bfd/coff-stgo32.c
+--- binutils-2.34.orig/bfd/coff-stgo32.c	2020-01-18 13:55:46 +0000
++++ binutils-2.34/bfd/coff-stgo32.c	2020-03-01 19:10:00 +0000
+@@ -51,10 +51,13 @@
+ { COFF_SECTION_NAME_PARTIAL_MATCH (".debug"), \
+   COFF_ALIGNMENT_FIELD_EMPTY, COFF_ALIGNMENT_FIELD_EMPTY, 0 }, \
+ { COFF_SECTION_NAME_PARTIAL_MATCH (".gnu.linkonce.wi"), \
+   COFF_ALIGNMENT_FIELD_EMPTY, COFF_ALIGNMENT_FIELD_EMPTY, 0 }
+ 
++/* Section contains extended relocations. */
++#define IMAGE_SCN_LNK_NRELOC_OVFL  0x01000000
++
+ #include "sysdep.h"
+ #include "bfd.h"
+ 
+ /* All that ..._PRE and ...POST functions are called from the corresponding
+    coff_swap... functions. The ...PRE functions are called at the beginning
+@@ -100,10 +103,14 @@ static const bfd_target *go32_check_form
+ static bfd_boolean
+   go32_stubbed_coff_bfd_copy_private_bfd_data (bfd *, bfd *);
+ 
+ #define coff_bfd_copy_private_bfd_data go32_stubbed_coff_bfd_copy_private_bfd_data
+ 
++bfd_boolean _bfd_go32_mkobject (bfd *abfd);
++
++#define coff_mkobject  _bfd_go32_mkobject
++
+ #include "coff-i386.c"
+ 
+ /* This macro is used, because I cannot assume the endianness of the
+    host system.  */
+ #define _H(index) (H_GET_16 (abfd, (header + index * 2)))
+@@ -420,5 +427,31 @@ go32_check_format (bfd *abfd)
+   if (bfd_seek (abfd, 0, SEEK_SET) != 0)
+     return NULL;
+ 
+   return coff_object_p (abfd);
+ }
++
++/*  This function is not static because it is used
++    by both targets coff-go32 and coff-go32-exe.  */
++
++bfd_boolean
++_bfd_go32_mkobject (bfd *abfd)
++{
++  coff_data_type *coff;
++  bfd_size_type amt = sizeof (coff_data_type);
++
++  abfd->tdata.coff_obj_data = bfd_zalloc (abfd, amt);
++  if (abfd->tdata.coff_obj_data == NULL)
++    return FALSE;
++  coff = coff_data (abfd);
++  coff->symbols = NULL;
++  coff->conversion_table = NULL;
++  coff->raw_syments = NULL;
++  coff->relocbase = 0;
++  coff->local_toc_sym_map = 0;
++
++  /* Setting go32 does not only identify a go32 bfd
++     but also that more than 64k relocations are supported.  */
++  coff->go32 = coff_64k_relocation_enabled ? 1 : 0;
++
++  return TRUE;
++}
+diff -aprNU5 binutils-2.34.orig/bfd/coffcode.h binutils-2.34/bfd/coffcode.h
+--- binutils-2.34.orig/bfd/coffcode.h	2020-01-18 13:55:46 +0000
++++ binutils-2.34/bfd/coffcode.h	2020-03-01 19:10:00 +0000
+@@ -362,10 +362,14 @@ CODE_FRAGMENT
+ #define DOT_ZDEBUG	".zdebug"
+ #define GNU_LINKONCE_WI ".gnu.linkonce.wi."
+ #define GNU_LINKONCE_WT ".gnu.linkonce.wt."
+ #define DOT_RELOC	".reloc"
+ 
++#if defined(COFF_WITH_PE) || defined(COFF_GO32_EXE) || defined(COFF_GO32)
++# define COFF_WITH_PE_OR_COFF_WITH_EXTENDED_RELOC_COUNTER
++#endif
++
+ #if defined (COFF_LONG_SECTION_NAMES)
+ /* Needed to expand the inputs to BLANKOR1TOODD.  */
+ #define COFFLONGSECTIONCATHELPER(x,y)    x ## y
+ /* If the input macro Y is blank or '1', return an odd number; if it is
+    '0', return an even number.  Result undefined in all other cases.  */
+@@ -1953,17 +1957,57 @@ coff_set_alignment_hook (bfd *abfd, asec
+     }
+ }
+ 
+ #else /* ! RS6000COFF_C */
+ 
++#if defined (COFF_GO32_EXE) || defined (COFF_GO32)
++
++static void
++coff_set_alignment_hook (bfd * abfd ATTRIBUTE_UNUSED,
++			 asection * section,
++			 void * scnhdr)
++{
++  if (coff_64k_relocation_enabled)
++    {
++      struct internal_scnhdr *hdr = (struct internal_scnhdr *) scnhdr;
++
++      /* Check for extended relocs.  */
++      if (hdr->s_flags & IMAGE_SCN_LNK_NRELOC_OVFL)
++        {
++	  struct external_reloc dst;
++	  struct internal_reloc n;
++	  file_ptr oldpos = bfd_tell (abfd);
++	  bfd_size_type relsz = bfd_coff_relsz (abfd);
++
++	  if (bfd_seek (abfd, (file_ptr) hdr->s_relptr, 0) != 0)
++	    return;
++	  if (bfd_bread (& dst, relsz, abfd) != relsz)
++	    return;
++
++	  coff_swap_reloc_in (abfd, &dst, &n);
++	  if (bfd_seek (abfd, oldpos, 0) != 0)
++	    return;
++	  section->reloc_count = hdr->s_nreloc = n.r_vaddr - 1;
++	  section->rel_filepos += relsz;
++        }
++      else if (hdr->s_nreloc == 0xffff)
++	(*_bfd_error_handler)
++	  ("%s: warning: claims to have 0xffff relocs, without overflow",
++	   bfd_get_filename (abfd));
++    }
++}
++
++#else /* ! COFF_GO32_EXE && ! COFF_GO32 */
++
+ static void
+ coff_set_alignment_hook (bfd *abfd ATTRIBUTE_UNUSED,
+ 			 asection *section ATTRIBUTE_UNUSED,
+ 			 void *scnhdr ATTRIBUTE_UNUSED)
+ {
+ }
+ 
++#endif /* ! COFF_GO32_EXE && ! COFF_GO32 */
+ #endif /* ! RS6000COFF_C */
+ #endif /* ! COFF_WITH_PE */
+ #endif /* ! COFF_ALIGN_IN_SECTION_HEADER */
+ 
+ #ifndef coff_mkobject
+@@ -2521,12 +2565,12 @@ coff_write_relocs (bfd * abfd, int first
+ #endif
+ 
+       if (bfd_seek (abfd, s->rel_filepos, SEEK_SET) != 0)
+ 	return FALSE;
+ 
+-#ifdef COFF_WITH_PE
+-      if (obj_pe (abfd) && s->reloc_count >= 0xffff)
++#ifdef COFF_WITH_PE_OR_COFF_WITH_EXTENDED_RELOC_COUNTER
++      if ((obj_pe (abfd) || obj_go32 (abfd)) && s->reloc_count >= 0xffff)
+ 	{
+ 	  /* Encode real count here as first reloc.  */
+ 	  struct internal_reloc n;
+ 
+ 	  memset (& n, 0, sizeof (n));
+@@ -3337,10 +3381,14 @@ coff_apply_checksum (bfd *abfd)
+   return TRUE;
+ }
+ 
+ #endif /* COFF_IMAGE_WITH_PE */
+ 
++#if defined (COFF_GO32_EXE) || defined (COFF_GO32)
++# define COFF_PAD_SECTION_HEADERS
++#endif
++
+ static bfd_boolean
+ coff_write_object_contents (bfd * abfd)
+ {
+   asection *current;
+   bfd_boolean hasrelocs = FALSE;
+@@ -3381,13 +3429,13 @@ coff_write_object_contents (bfd * abfd)
+   /* Work out the size of the reloc and linno areas.  */
+ 
+   for (current = abfd->sections; current != NULL; current =
+        current->next)
+     {
+-#ifdef COFF_WITH_PE
++#ifdef COFF_WITH_PE_OR_COFF_WITH_EXTENDED_RELOC_COUNTER
+       /* We store the actual reloc count in the first reloc's addr.  */
+-      if (obj_pe (abfd) && current->reloc_count >= 0xffff)
++      if ((obj_pe (abfd) || obj_go32 (abfd)) && current->reloc_count >= 0xffff)
+ 	reloc_count ++;
+ #endif
+       reloc_count += current->reloc_count;
+     }
+ 
+@@ -3411,13 +3459,13 @@ coff_write_object_contents (bfd * abfd)
+ 
+       if (current->reloc_count)
+ 	{
+ 	  current->rel_filepos = reloc_base;
+ 	  reloc_base += current->reloc_count * bfd_coff_relsz (abfd);
+-#ifdef COFF_WITH_PE
++#ifdef COFF_WITH_PE_OR_COFF_WITH_EXTENDED_RELOC_COUNTER
+ 	  /* Extra reloc to hold real count.  */
+-	  if (obj_pe (abfd) && current->reloc_count >= 0xffff)
++	  if ((obj_pe (abfd) || obj_go32 (abfd)) && current->reloc_count >= 0xffff)
+ 	    reloc_base += bfd_coff_relsz (abfd);
+ #endif
+ 	}
+       else
+ 	current->rel_filepos = 0;
+@@ -3748,10 +3796,22 @@ coff_write_object_contents (bfd * abfd)
+ 	}
+     }
+ #endif
+ #endif
+ 
++#ifdef COFF_PAD_SECTION_HEADERS
++  if (abfd->flags & EXEC_P)
++  {
++    file_ptr cur_ptr = scn_base + abfd->section_count * bfd_coff_scnhsz(abfd);
++    long fill_size = (abfd->sections->filepos - cur_ptr);
++    bfd_byte *b = bfd_zmalloc(fill_size);
++    if (b)
++      bfd_bwrite ((PTR)b, fill_size, abfd);
++    free (b);
++  }
++#endif
++
+   /* OK, now set up the filehdr...  */
+ 
+   /* Don't include the internal abs section in the section count */
+ 
+   /* We will NOT put a fucking timestamp in the header here. Every time you
+diff -aprNU5 binutils-2.34.orig/bfd/cofflink.c binutils-2.34/bfd/cofflink.c
+--- binutils-2.34.orig/bfd/cofflink.c	2020-01-18 13:55:46 +0000
++++ binutils-2.34/bfd/cofflink.c	2020-03-01 19:10:00 +0000
+@@ -687,11 +687,11 @@ _bfd_coff_final_link (bfd *abfd,
+ 	  o->flags |= SEC_RELOC;
+ 	  o->rel_filepos = rel_filepos;
+ 	  rel_filepos += o->reloc_count * relsz;
+ 	  /* In PE COFF, if there are at least 0xffff relocations an
+ 	     extra relocation will be written out to encode the count.  */
+-	  if (obj_pe (abfd) && o->reloc_count >= 0xffff)
++	  if ((obj_pe (abfd) || obj_go32 (abfd)) && o->reloc_count >= 0xffff)
+ 	    rel_filepos += relsz;
+ 	}
+ 
+       if (bfd_coff_long_section_names (abfd)
+ 	  && strlen (o->name) > SCNNMLEN)
+@@ -1106,11 +1106,11 @@ _bfd_coff_final_link (bfd *abfd,
+ 	      bfd_coff_swap_reloc_out (abfd, irel, erel);
+ 	    }
+ 
+ 	  if (bfd_seek (abfd, o->rel_filepos, SEEK_SET) != 0)
+ 	    goto error_return;
+-	  if (obj_pe (abfd) && o->reloc_count >= 0xffff)
++	  if ((obj_pe (abfd) || obj_go32 (abfd)) && o->reloc_count >= 0xffff)
+ 	    {
+ 	      /* In PE COFF, write the count of relocs as the first
+ 		 reloc.  The header overflow bit will be set
+ 		 elsewhere. */
+ 	      struct internal_reloc incount;
+diff -aprNU5 binutils-2.34.orig/bfd/coffswap.h binutils-2.34/bfd/coffswap.h
+--- binutils-2.34.orig/bfd/coffswap.h	2020-01-18 13:55:46 +0000
++++ binutils-2.34/bfd/coffswap.h	2020-03-01 19:10:00 +0000
+@@ -744,10 +744,23 @@ coff_swap_scnhdr_in (bfd * abfd, void *
+   scnhdr_int->s_relptr = GET_SCNHDR_RELPTR (abfd, scnhdr_ext->s_relptr);
+   scnhdr_int->s_lnnoptr = GET_SCNHDR_LNNOPTR (abfd, scnhdr_ext->s_lnnoptr);
+   scnhdr_int->s_flags = GET_SCNHDR_FLAGS (abfd, scnhdr_ext->s_flags);
+   scnhdr_int->s_nreloc = GET_SCNHDR_NRELOC (abfd, scnhdr_ext->s_nreloc);
+   scnhdr_int->s_nlnno = GET_SCNHDR_NLNNO (abfd, scnhdr_ext->s_nlnno);
++#if defined (COFF_GO32_EXE) || defined(COFF_GO32)
++  /* DJGPP follows the same strategy than PE COFF.
++     Iff the file is an executable then the higher 16 bits
++     of the line number have been stored in the relocation
++     counter field.  */
++  if (coff_64k_relocation_enabled && abfd->flags & EXEC_P
++      && (strcmp(scnhdr_ext->s_name, ".text") == 0))
++  {
++    scnhdr_int->s_nlnno = (GET_SCNHDR_NRELOC(abfd, scnhdr_ext->s_nreloc) << 16)
++                          + GET_SCNHDR_NLNNO(abfd, scnhdr_ext->s_nlnno);
++    scnhdr_int->s_nreloc = 0;
++  }
++#endif
+ #ifdef COFF_ADJUST_SCNHDR_IN_POST
+   COFF_ADJUST_SCNHDR_IN_POST (abfd, ext, in);
+ #endif
+ }
+ 
+@@ -768,10 +781,65 @@ coff_swap_scnhdr_out (bfd * abfd, void *
+   PUT_SCNHDR_SIZE (abfd, scnhdr_int->s_size, scnhdr_ext->s_size);
+   PUT_SCNHDR_SCNPTR (abfd, scnhdr_int->s_scnptr, scnhdr_ext->s_scnptr);
+   PUT_SCNHDR_RELPTR (abfd, scnhdr_int->s_relptr, scnhdr_ext->s_relptr);
+   PUT_SCNHDR_LNNOPTR (abfd, scnhdr_int->s_lnnoptr, scnhdr_ext->s_lnnoptr);
+   PUT_SCNHDR_FLAGS (abfd, scnhdr_int->s_flags, scnhdr_ext->s_flags);
++#if defined (COFF_GO32_EXE) || defined(COFF_GO32)
++  if (coff_64k_relocation_enabled)
++    {
++      if (abfd->flags & EXEC_P
++	  && (strcmp(scnhdr_int->s_name, ".text") == 0))
++	{
++	  /* DJGPP follows the same strategy than PE COFF.
++	     By inference from looking at MS output, the 32 bit field
++	     which is the combination of the number_of_relocs and
++	     number_of_linenos is used for the line number count in
++	     executables.  A 16-bit field won't do for cc1.  The MS
++	     document says that the number of relocs is zero for
++	     executables, but the 17-th bit has been observed to be there.
++	     Overflow is not an issue: a 4G-line program will overflow a
++	     bunch of other fields long before this!  */
++	  PUT_SCNHDR_NLNNO (abfd, (scnhdr_int->s_nlnno & 0xffff), scnhdr_ext->s_nlnno);
++	  PUT_SCNHDR_NRELOC (abfd, (scnhdr_int->s_nlnno >> 16), scnhdr_ext->s_nreloc);
++	}
++      else
++	{
++	  /* DJGPP follows the same strategy than PE COFF. */
++	  if (scnhdr_int->s_nlnno <= MAX_SCNHDR_NLNNO)
++	    PUT_SCNHDR_NLNNO (abfd, scnhdr_int->s_nlnno, scnhdr_ext->s_nlnno);
++	  else
++	    {
++	       char buf[sizeof (scnhdr_int->s_name) + 1];
++
++	       memcpy (buf, scnhdr_int->s_name, sizeof (scnhdr_int->s_name));
++	       buf[sizeof (scnhdr_int->s_name)] = '\0';
++	       (*_bfd_error_handler)
++		(_("%s: %s: line number overflow: 0x%lx > 0xffff"),
++		 bfd_get_filename (abfd),
++		 buf, scnhdr_int->s_nlnno);
++	       bfd_set_error (bfd_error_file_truncated);
++	       PUT_SCNHDR_NLNNO (abfd, 0xffff, scnhdr_ext->s_nlnno);
++	       ret = 0;
++	    }
++
++	  /* Although we could encode 0xffff relocs here, we do not, to be
++	     consistent with other parts of bfd. Also it lets us warn, as
++	     we should never see 0xffff here w/o having the overflow flag
++	     set.  */
++	  if (scnhdr_int->s_nreloc < MAX_SCNHDR_NRELOC)
++	    PUT_SCNHDR_NRELOC (abfd, scnhdr_int->s_nreloc, scnhdr_ext->s_nreloc);
++	  else
++	    {
++	       /* DJGPP can deal with large #s of relocs, but not here.  */
++	       PUT_SCNHDR_NRELOC (abfd, 0xffff, scnhdr_ext->s_nreloc);
++	       scnhdr_int->s_flags |= IMAGE_SCN_LNK_NRELOC_OVFL;
++	       PUT_SCNHDR_FLAGS (abfd, scnhdr_int->s_flags, scnhdr_ext->s_flags);
++	    }
++	}
++      goto finalization;
++    }
++#endif
+   if (scnhdr_int->s_nlnno <= MAX_SCNHDR_NLNNO)
+     PUT_SCNHDR_NLNNO (abfd, scnhdr_int->s_nlnno, scnhdr_ext->s_nlnno);
+   else
+     {
+       char buf[sizeof (scnhdr_int->s_name) + 1];
+@@ -799,10 +867,13 @@ coff_swap_scnhdr_out (bfd * abfd, void *
+       bfd_set_error (bfd_error_file_truncated);
+       PUT_SCNHDR_NRELOC (abfd, 0xffff, scnhdr_ext->s_nreloc);
+       ret = 0;
+     }
+ 
++#if defined (COFF_GO32_EXE) || defined(COFF_GO32)
++finalization:
++#endif
+ #ifdef COFF_ADJUST_SCNHDR_OUT_POST
+   COFF_ADJUST_SCNHDR_OUT_POST (abfd, in, out);
+ #endif
+   return ret;
+ }
+diff -aprNU5 binutils-2.34.orig/bfd/config.in binutils-2.34/bfd/config.in
+--- binutils-2.34.orig/bfd/config.in	2020-02-01 11:49:18 +0000
++++ binutils-2.34/bfd/config.in	2020-03-01 19:10:00 +0000
+@@ -414,5 +414,39 @@
+    this defined. */
+ #undef _POSIX_1_SOURCE
+ 
+ /* Define to 1 if you need to in order for `stat' and other things to work. */
+ #undef _POSIX_SOURCE
++#ifdef __DJGPP__
++# if defined (__GNUC__) && (__GNUC__ > 2 || (__GNUC__ == 2 && __GNUC_MINOR__ >= 8))
++#  define __gnuc_extension__  __extension__
++# else
++#  define __gnuc_extension__
++# endif
++
++# undef  IS_SLASH
++# define IS_SLASH(c)                ((c) == '/' || (c) == '\\')
++# undef  IS_DIRECTORY_SEPARATOR
++# define IS_DIRECTORY_SEPARATOR(c)  (IS_SLASH(c) || (c) == ':')
++
++# include <libc/unconst.h>
++# define STRIP_FULL_PATH_AND_EXTENSION(file_name)   \
++  (__gnuc_extension__                               \
++    ({                                              \
++       char *_dst, *_src;                           \
++       _dst = _src = unconst((file_name), char *);  \
++       while (*_src++)                              \
++         ;                                          \
++       while ((_src - _dst) && (*--_src != '.'))    \
++         ;                                          \
++       for (*_src = '\0'; (_src - _dst); _src--)    \
++         if (IS_DIRECTORY_SEPARATOR(*_src))         \
++           break;                                   \
++       if (_src - _dst)                             \
++         while ((*_dst++ = *++_src))                \
++           ;                                        \
++       (file_name);                                 \
++    })                                              \
++  )
++#else
++# define STRIP_FULL_PATH_AND_EXTENSION(file_name)  (file_name)
++#endif
+diff -aprNU5 binutils-2.34.orig/bfd/init.c binutils-2.34/bfd/init.c
+--- binutils-2.34.orig/bfd/init.c	2020-01-18 13:55:46 +0000
++++ binutils-2.34/bfd/init.c	2020-03-01 19:10:00 +0000
+@@ -21,10 +21,16 @@
+ 
+ #include "sysdep.h"
+ #include "bfd.h"
+ #include "libbfd.h"
+ 
++/* This controls if the coff 64k support shall be disabled or not.
++   By default always enabled.  */
++/* #if defined(__DJGPP__) || defined(COFF_GO32_EXE) || defined(COFF_GO32) */
++bfd_boolean coff_64k_relocation_enabled = TRUE;
++/* #endif */
++
+ /*
+ SECTION
+ 	Initialization
+ 
+ SUBSECTION
+@@ -55,7 +61,13 @@ DESCRIPTION
+    However, someday it may be needed, so keep it around.  */
+ 
+ unsigned int
+ bfd_init (void)
+ {
++#if defined(__DJGPP__) || defined(COFF_GO32_EXE) || defined(COFF_GO32)
++  const char *disable_64k_reloc_support = getenv("DISABLE_64K_RELOC_SUPPORT");
++  coff_64k_relocation_enabled = !(disable_64k_reloc_support &&
++                                  (disable_64k_reloc_support[0] == 'y' || disable_64k_reloc_support[0] == 'Y') &&
++                                  disable_64k_reloc_support[1] == '\0') ? TRUE : FALSE;
++#endif
+   return BFD_INIT_MAGIC;
+ }
+diff -aprNU5 binutils-2.34.orig/bfd/libcoff-in.h binutils-2.34/bfd/libcoff-in.h
+--- binutils-2.34.orig/bfd/libcoff-in.h	2020-01-18 13:55:46 +0000
++++ binutils-2.34/bfd/libcoff-in.h	2020-03-01 19:10:00 +0000
+@@ -31,12 +31,13 @@ extern "C" {
+ 
+ /* Object file tdata; access macros.  */
+ 
+ #define coff_data(bfd)		      ((bfd)->tdata.coff_obj_data)
+ #define obj_pe(bfd)		      (coff_data (bfd)->pe)
++#define obj_go32(bfd)		      (coff_data (bfd)->go32)
+ #define obj_symbols(bfd)	      (coff_data (bfd)->symbols)
+-#define	obj_sym_filepos(bfd)	      (coff_data (bfd)->sym_filepos)
++#define obj_sym_filepos(bfd)	      (coff_data (bfd)->sym_filepos)
+ #define obj_relocbase(bfd)	      (coff_data (bfd)->relocbase)
+ #define obj_raw_syments(bfd)	      (coff_data (bfd)->raw_syments)
+ #define obj_raw_syment_count(bfd)     (coff_data (bfd)->raw_syment_count)
+ #define obj_convert(bfd)	      (coff_data (bfd)->conversion_table)
+ #define obj_conv_table_size(bfd)      (coff_data (bfd)->conv_table_size)
+@@ -112,10 +113,12 @@ typedef struct coff_tdata
+ 
+   /* Copy of some of the f_flags bits in the COFF filehdr structure,
+      used by ARM code.  */
+   flagword flags;
+ 
++  /* Is this a GO32 coff file?  */
++  int go32;
+   /* coff-stgo32 EXE stub header after BFD tdata has been allocated.  Its data
+      is kept in internal_filehdr.go32stub beforehand.  */
+   char *go32stub;
+ } coff_data_type;
+ 
+diff -aprNU5 binutils-2.34.orig/bfd/Makefile.in binutils-2.34/bfd/Makefile.in
+--- binutils-2.34.orig/bfd/Makefile.in	2020-02-01 11:49:12 +0000
++++ binutils-2.34/bfd/Makefile.in	2020-03-01 19:10:00 +0000
+@@ -2033,11 +2033,11 @@ host-aout.lo: Makefile
+ aout-params.h: gen-aout
+ 	./gen-aout host > aout-params.h
+ gen-aout: $(srcdir)/gen-aout.c Makefile
+ 	$(CC) -o gen-aout $(CFLAGS) $(LFLAGS) $(srcdir)/gen-aout.c
+ 
+-$(BFD_H): stmp-bfd-h ; @true
++$(BFD_H): stmp-lcoff-h stmp-bfd-h ; @true
+ 
+ stmp-bfd-h: bfd-in3.h
+ 	rm -f bfd-tmp.h
+ 	cp bfd-in3.h bfd-tmp.h
+ 	$(SHELL) $(srcdir)/../move-if-change bfd-tmp.h $(BFD_H)
+@@ -2055,11 +2055,11 @@ headers:
+ 	$(SHELL) $(srcdir)/../move-if-change libcoff.h-new $(srcdir)/libcoff.h
+ 
+ # We only rebuild the header files automatically if we have been
+ # configured with --enable-maintainer-mode.
+ 
+-$(srcdir)/bfd-in2.h: @MAINT@ stmp-bin2-h ; @true
++$(srcdir)/bfd-in2.h: stmp-bin2-h ; @true
+ stmp-bin2-h: $(BFD_H_FILES) $(BFD64_H_FILES)
+ 	(cd $(bfddocdir); $(MAKE) $(FLAGS_TO_PASS) bfd.h)
+ 	cp $(bfddocdir)/bfd.h bfd-in2.h-new
+ 	$(SHELL) $(srcdir)/../move-if-change bfd-in2.h-new $(srcdir)/bfd-in2.h
+ 	touch stmp-bin2-h
+diff -aprNU5 binutils-2.34.orig/include/bfdlink.h binutils-2.34/include/bfdlink.h
+--- binutils-2.34.orig/include/bfdlink.h	2020-01-18 13:55:48 +0000
++++ binutils-2.34/include/bfdlink.h	2020-03-01 19:10:00 +0000
+@@ -302,11 +302,11 @@ struct bfd_elf_version_tree;
+ enum output_type
+ {
+   type_pde,
+   type_pie,
+   type_relocatable,
+-  type_dll,
++  type_dll
+ };
+ 
+ #define bfd_link_pde(info)	   ((info)->type == type_pde)
+ #define bfd_link_dll(info)	   ((info)->type == type_dll)
+ #define bfd_link_relocatable(info) ((info)->type == type_relocatable)
+diff -aprNU5 binutils-2.34.orig/include/coff/internal.h binutils-2.34/include/coff/internal.h
+--- binutils-2.34.orig/include/coff/internal.h	2020-01-18 13:55:48 +0000
++++ binutils-2.34/include/coff/internal.h	2020-03-01 19:10:00 +0000
+@@ -165,11 +165,11 @@ typedef struct _CODEVIEW_INFO
+ {
+   unsigned long CVSignature;
+   char          Signature[CV_INFO_SIGNATURE_LENGTH];
+   unsigned int  SignatureLength;
+   unsigned long Age;
+-  // char PdbFileName[];
++  /* char PdbFileName[]; */
+ } CODEVIEW_INFO;
+ 
+ /* Default image base for NT.  */
+ #define NT_EXE_IMAGE_BASE 0x400000
+ #define NT_DLL_IMAGE_BASE 0x10000000
+diff -aprNU5 binutils-2.34.orig/include/simple-object.h binutils-2.34/include/simple-object.h
+--- binutils-2.34.orig/include/simple-object.h	2020-01-18 13:55:48 +0000
++++ binutils-2.34/include/simple-object.h	2020-03-01 19:10:00 +0000
+@@ -204,11 +204,11 @@ simple_object_release_write (simple_obje
+    If an error occurs, return the errno value in ERR and an error string.  */
+ 
+ extern const char *
+ simple_object_copy_lto_debug_sections (simple_object_read *src_object,
+ 				       const char *dest,
+-				       int *err, int rename);
++				       int *err, int lib_rename);
+ 
+ #ifdef __cplusplus
+ }
+ #endif
+ 
+diff -aprNU5 binutils-2.34.orig/libiberty/config.in binutils-2.34/libiberty/config.in
+--- binutils-2.34.orig/libiberty/config.in	2020-01-18 13:55:48 +0000
++++ binutils-2.34/libiberty/config.in	2020-03-01 19:10:00 +0000
+@@ -573,5 +573,59 @@
+    pointer, if such a type exists, and if the system does not define it. */
+ #undef uintptr_t
+ 
+ /* Define as `fork' if `vfork' does not work. */
+ #undef vfork
++
++#ifdef __DJGPP__
++# if defined (__GNUC__) && (__GNUC__ > 2 || (__GNUC__ == 2 && __GNUC_MINOR__ >= 8))
++#  define __gnuc_extension__  __extension__
++# else
++#  define __gnuc_extension__
++# endif
++
++/*
++ *  (ENOTSUP and EOPNOTSUPP have the same value on Linux,
++ *  but according to POSIX.1 these error values should be
++ *  distinct.)
++ */
++
++# if !defined(ENOTSUP) && defined(EOPNOTSUPP)
++#  define ENOTSUP  EOPNOTSUPP
++# endif
++
++/* Values taken from FreeBSD.  */
++# ifndef ENOTSUP
++#  define ENOTSUP  9926  /* Operation not supported (POSIX.1-2001).  */
++# endif
++
++# ifndef EOPNOTSUPP
++#  define EOPNOTSUPP  9929  /* Operation not supported on socket (POSIX.1-2001).  */
++# endif
++
++# undef  IS_SLASH
++# define IS_SLASH(c)                ((c) == '/' || (c) == '\\')
++# undef  IS_DIRECTORY_SEPARATOR
++# define IS_DIRECTORY_SEPARATOR(c)  (IS_SLASH(c) || (c) == ':')
++
++# include <libc/unconst.h>
++# define STRIP_FULL_PATH_AND_EXTENSION(file_name)   \
++  (__gnuc_extension__                               \
++    ({                                              \
++       char *_dst, *_src;                           \
++       _dst = _src = unconst((file_name), char *);  \
++       while (*_src++)                              \
++         ;                                          \
++       while ((_src - _dst) && (*--_src != '.'))    \
++         ;                                          \
++       for (*_src = '\0'; (_src - _dst); _src--)    \
++         if (IS_DIRECTORY_SEPARATOR(*_src))         \
++           break;                                   \
++       if (_src - _dst)                             \
++         while ((*_dst++ = *++_src))                \
++           ;                                        \
++       (file_name);                                 \
++    })                                              \
++  )
++#else  /* !__DJGPP__ */
++# define STRIP_FULL_PATH_AND_EXTENSION(file_name)  (file_name)
++#endif  /* !__DJGPP__ */
+diff -aprNU5 binutils-2.34.orig/libiberty/cp-demangle.c binutils-2.34/libiberty/cp-demangle.c
+--- binutils-2.34.orig/libiberty/cp-demangle.c	2020-01-18 13:55:48 +0000
++++ binutils-2.34/libiberty/cp-demangle.c	2020-03-01 19:10:00 +0000
+@@ -2950,11 +2950,11 @@ d_parmlist (struct d_info *di)
+ }
+ 
+ /* <bare-function-type> ::= [J]<type>+  */
+ 
+ static struct demangle_component *
+-d_bare_function_type (struct d_info *di, int has_return_type)
++d_bare_function_type (struct d_info *di, int has_return_type_flag)
+ {
+   struct demangle_component *return_type;
+   struct demangle_component *tl;
+   char peek;
+ 
+@@ -2962,14 +2962,14 @@ d_bare_function_type (struct d_info *di,
+      is the return type.  */
+   peek = d_peek_char (di);
+   if (peek == 'J')
+     {
+       d_advance (di, 1);
+-      has_return_type = 1;
++      has_return_type_flag = 1;
+     }
+ 
+-  if (has_return_type)
++  if (has_return_type_flag)
+     {
+       return_type = cplus_demangle_type (di);
+       if (return_type == NULL)
+ 	return NULL;
+     }
+@@ -3323,26 +3323,26 @@ d_expression_1 (struct d_info *di)
+ 			  d_expression_1 (di), NULL);
+     }
+   else if (peek == 'f' && d_peek_next_char (di) == 'p')
+     {
+       /* Function parameter used in a late-specified return type.  */
+-      int index;
++      int lib_index;
+       d_advance (di, 2);
+       if (d_peek_char (di) == 'T')
+ 	{
+ 	  /* 'this' parameter.  */
+ 	  d_advance (di, 1);
+-	  index = 0;
++	  lib_index = 0;
+ 	}
+       else
+ 	{
+-	  index = d_compact_number (di);
+-	  if (index == INT_MAX || index == -1)
++	  lib_index = d_compact_number (di);
++	  if (lib_index == INT_MAX || lib_index == -1)
+ 	    return NULL;
+-	  index++;
++	  lib_index++;
+ 	}
+-      return d_make_function_param (di, index);
++      return d_make_function_param (di, lib_index);
+     }
+   else if (IS_DIGIT (peek)
+ 	   || (peek == 'o' && d_peek_next_char (di) == 'n'))
+     {
+       /* We can get an unqualified name as an expression in the case of
+@@ -4683,11 +4683,11 @@ d_print_comp_inner (struct d_print_info
+      without needing to modify *dc.  */
+   struct demangle_component *mod_inner = NULL;
+ 
+   /* Variable used to store the current templates while a previously
+      captured scope is used.  */
+-  struct d_print_template *saved_templates;
++  struct d_print_template *saved_templates = NULL;
+ 
+   /* Nonzero if templates have been stored in the above variable.  */
+   int need_template_restore = 0;
+ 
+   if (dc == NULL)
+@@ -6271,11 +6271,11 @@ d_demangle_callback (const char *mangled
+       DCT_GLOBAL_CTORS,
+       DCT_GLOBAL_DTORS
+     }
+   type;
+   struct d_info di;
+-  struct demangle_component *dc;
++  struct demangle_component *dc = NULL;
+   int status;
+ 
+   if (mangled[0] == '_' && mangled[1] == 'Z')
+     type = DCT_MANGLED;
+   else if (strncmp (mangled, "_GLOBAL_", 8) == 0
+diff -aprNU5 binutils-2.34.orig/libiberty/floatformat.c binutils-2.34/libiberty/floatformat.c
+--- binutils-2.34.orig/libiberty/floatformat.c	2020-01-18 13:55:48 +0000
++++ binutils-2.34/libiberty/floatformat.c	2020-03-01 19:10:00 +0000
+@@ -484,20 +484,20 @@ floatformat_to_double (const struct floa
+   /* If the exponent indicates a NaN, we don't have information to
+      decide what to do.  So we handle it like IEEE, except that we
+      don't try to preserve the type of NaN.  FIXME.  */
+   if ((unsigned long) exponent == fmt->exp_nan)
+     {
+-      int nan = mant_bits_set (fmt, ufrom);
++      int bfd_nan = mant_bits_set (fmt, ufrom);
+ 
+       /* On certain systems (such as GNU/Linux), the use of the
+ 	 INFINITY macro below may generate a warning that cannot be
+ 	 silenced due to a bug in GCC (PR preprocessor/11931).  The
+ 	 preprocessor fails to recognise the __extension__ keyword in
+ 	 conjunction with the GNU/C99 extension for hexadecimal
+ 	 floating point constants and will issue a warning when
+ 	 compiling with -pedantic.  */
+-      if (nan)
++      if (bfd_nan)
+ 	dto = NAN;
+       else
+ 	dto = INFINITY;
+ 
+       if (get_field (ufrom, fmt->byteorder, fmt->totalsize, fmt->sign_start, 1))
+diff -aprNU5 binutils-2.34.orig/libiberty/hashtab.c binutils-2.34/libiberty/hashtab.c
+--- binutils-2.34.orig/libiberty/hashtab.c	2020-01-18 13:55:48 +0000
++++ binutils-2.34/libiberty/hashtab.c	2020-03-01 19:10:00 +0000
+@@ -478,28 +478,28 @@ htab_empty (htab_t htab)
+    HASH is the hash value for the element to be inserted.  */
+ 
+ static PTR *
+ find_empty_slot_for_expand (htab_t htab, hashval_t hash)
+ {
+-  hashval_t index = htab_mod (hash, htab);
++  hashval_t lib_index = htab_mod (hash, htab);
+   size_t size = htab_size (htab);
+-  PTR *slot = htab->entries + index;
++  PTR *slot = htab->entries + lib_index;
+   hashval_t hash2;
+ 
+   if (*slot == HTAB_EMPTY_ENTRY)
+     return slot;
+   else if (*slot == HTAB_DELETED_ENTRY)
+     abort ();
+ 
+   hash2 = htab_mod_m2 (hash, htab);
+   for (;;)
+     {
+-      index += hash2;
+-      if (index >= size)
+-	index -= size;
++      lib_index += hash2;
++      if (lib_index >= size)
++	lib_index -= size;
+ 
+-      slot = htab->entries + index;
++      slot = htab->entries + lib_index;
+       if (*slot == HTAB_EMPTY_ENTRY)
+ 	return slot;
+       else if (*slot == HTAB_DELETED_ENTRY)
+ 	abort ();
+     }
+@@ -582,32 +582,32 @@ htab_expand (htab_t htab)
+    element.  It cannot be used to insert or delete an element.  */
+ 
+ PTR
+ htab_find_with_hash (htab_t htab, const PTR element, hashval_t hash)
+ {
+-  hashval_t index, hash2;
++  hashval_t lib_index, hash2;
+   size_t size;
+   PTR entry;
+ 
+   htab->searches++;
+   size = htab_size (htab);
+-  index = htab_mod (hash, htab);
++  lib_index = htab_mod (hash, htab);
+ 
+-  entry = htab->entries[index];
++  entry = htab->entries[lib_index];
+   if (entry == HTAB_EMPTY_ENTRY
+       || (entry != HTAB_DELETED_ENTRY && (*htab->eq_f) (entry, element)))
+     return entry;
+ 
+   hash2 = htab_mod_m2 (hash, htab);
+   for (;;)
+     {
+       htab->collisions++;
+-      index += hash2;
+-      if (index >= size)
+-	index -= size;
++      lib_index += hash2;
++      if (lib_index >= size)
++	lib_index -= size;
+ 
+-      entry = htab->entries[index];
++      entry = htab->entries[lib_index];
+       if (entry == HTAB_EMPTY_ENTRY
+ 	  || (entry != HTAB_DELETED_ENTRY && (*htab->eq_f) (entry, element)))
+ 	return entry;
+     }
+ }
+@@ -632,11 +632,11 @@ htab_find (htab_t htab, const PTR elemen
+ PTR *
+ htab_find_slot_with_hash (htab_t htab, const PTR element,
+                           hashval_t hash, enum insert_option insert)
+ {
+   PTR *first_deleted_slot;
+-  hashval_t index, hash2;
++  hashval_t lib_index, hash2;
+   size_t size;
+   PTR entry;
+ 
+   size = htab_size (htab);
+   if (insert == INSERT && size * 3 <= htab->n_elements * 4)
+@@ -644,41 +644,41 @@ htab_find_slot_with_hash (htab_t htab, c
+       if (htab_expand (htab) == 0)
+ 	return NULL;
+       size = htab_size (htab);
+     }
+ 
+-  index = htab_mod (hash, htab);
++  lib_index = htab_mod (hash, htab);
+ 
+   htab->searches++;
+   first_deleted_slot = NULL;
+ 
+-  entry = htab->entries[index];
++  entry = htab->entries[lib_index];
+   if (entry == HTAB_EMPTY_ENTRY)
+     goto empty_entry;
+   else if (entry == HTAB_DELETED_ENTRY)
+-    first_deleted_slot = &htab->entries[index];
++    first_deleted_slot = &htab->entries[lib_index];
+   else if ((*htab->eq_f) (entry, element))
+-    return &htab->entries[index];
+-      
++    return &htab->entries[lib_index];
++
+   hash2 = htab_mod_m2 (hash, htab);
+   for (;;)
+     {
+       htab->collisions++;
+-      index += hash2;
+-      if (index >= size)
+-	index -= size;
++      lib_index += hash2;
++      if (lib_index >= size)
++	lib_index -= size;
+       
+-      entry = htab->entries[index];
++      entry = htab->entries[lib_index];
+       if (entry == HTAB_EMPTY_ENTRY)
+ 	goto empty_entry;
+       else if (entry == HTAB_DELETED_ENTRY)
+ 	{
+ 	  if (!first_deleted_slot)
+-	    first_deleted_slot = &htab->entries[index];
++	    first_deleted_slot = &htab->entries[lib_index];
+ 	}
+       else if ((*htab->eq_f) (entry, element))
+-	return &htab->entries[index];
++	return &htab->entries[lib_index];
+     }
+ 
+  empty_entry:
+   if (insert == NO_INSERT)
+     return NULL;
+@@ -689,11 +689,11 @@ htab_find_slot_with_hash (htab_t htab, c
+       *first_deleted_slot = HTAB_EMPTY_ENTRY;
+       return first_deleted_slot;
+     }
+ 
+   htab->n_elements++;
+-  return &htab->entries[index];
++  return &htab->entries[lib_index];
+ }
+ 
+ /* Like htab_find_slot_with_hash, but compute the hash value from the
+    element.  */
+ 
+diff -aprNU5 binutils-2.34.orig/libiberty/make-relative-prefix.c binutils-2.34/libiberty/make-relative-prefix.c
+--- binutils-2.34.orig/libiberty/make-relative-prefix.c	2020-01-18 13:55:48 +0000
++++ binutils-2.34/libiberty/make-relative-prefix.c	2020-03-01 19:10:00 +0000
+@@ -79,10 +79,11 @@ relative prefix can be found, return @co
+ #if defined (_WIN32) || defined (__MSDOS__) \
+     || defined (__DJGPP__) || defined (__OS2__)
+ #  define HAVE_DOS_BASED_FILE_SYSTEM
+ #  define HAVE_HOST_EXECUTABLE_SUFFIX
+ #  define HOST_EXECUTABLE_SUFFIX ".exe"
++#  define FILENAME_COMPARE strcasecmp
+ #  ifndef DIR_SEPARATOR_2 
+ #    define DIR_SEPARATOR_2 '\\'
+ #  endif
+ #  define PATH_SEPARATOR ';'
+ #else
+@@ -94,10 +95,13 @@ relative prefix can be found, return @co
+ #else
+ #  define IS_DIR_SEPARATOR(ch) \
+ 	(((ch) == DIR_SEPARATOR) || ((ch) == DIR_SEPARATOR_2))
+ #endif
+ 
++#ifndef FILENAME_COMPARE
++#  define FILENAME_COMPARE strcmp
++#endif
+ #define DIR_UP ".."
+ 
+ static char *save_string (const char *, int);
+ static char **split_directories	(const char *, int *);
+ static void free_split_directories (char **);
+@@ -338,11 +342,11 @@ make_relative_prefix_1 (const char *prog
+      we can do.  */
+   if (prog_num == bin_num)
+     {
+       for (i = 0; i < bin_num; i++)
+ 	{
+-	  if (strcmp (prog_dirs[i], bin_dirs[i]) != 0)
++	  if (FILENAME_COMPARE (prog_dirs[i], bin_dirs[i]) != 0)
+ 	    break;
+ 	}
+ 
+       if (prog_num <= 0 || i == bin_num)
+ 	goto bailout;
+@@ -354,11 +358,11 @@ make_relative_prefix_1 (const char *prog
+ 
+   /* Find how many directories are in common between bin_prefix & prefix.  */
+   n = (prefix_num < bin_num) ? prefix_num : bin_num;
+   for (common = 0; common < n; common++)
+     {
+-      if (strcmp (bin_dirs[common], prefix_dirs[common]) != 0)
++      if (FILENAME_COMPARE (bin_dirs[common], prefix_dirs[common]) != 0)
+ 	break;
+     }
+ 
+   /* If there are no common directories, there can be no relative prefix.  */
+   if (common == 0)
+diff -aprNU5 binutils-2.34.orig/libiberty/make-temp-file.c binutils-2.34/libiberty/make-temp-file.c
+--- binutils-2.34.orig/libiberty/make-temp-file.c	2020-01-18 13:55:48 +0000
++++ binutils-2.34/libiberty/make-temp-file.c	2020-03-01 19:10:00 +0000
+@@ -52,16 +52,31 @@ extern int mkstemps (char *, int);
+ /* '/' works just fine on MS-DOS based systems.  */
+ #ifndef DIR_SEPARATOR
+ #define DIR_SEPARATOR '/'
+ #endif
+ 
++#if defined (_WIN32) || defined (__MSDOS__) \
++    || defined (__DJGPP__) || defined (__OS2__)
++#  define HAVE_DOS_BASED_FILE_SYSTEM
++#  ifndef DIR_SEPARATOR_2 
++#    define DIR_SEPARATOR_2 '\\'
++#  endif
++#endif
++
++#ifndef DIR_SEPARATOR_2
++#  define IS_DIR_SEPARATOR(ch) ((ch) == DIR_SEPARATOR)
++#else
++#  define IS_DIR_SEPARATOR(ch) \
++     (((ch) == DIR_SEPARATOR) || ((ch) == DIR_SEPARATOR_2))
++#endif
++
+ /* Name of temporary file.
+    mktemp requires 6 trailing X's.  */
+ #define TEMP_FILE "XXXXXX"
+ #define TEMP_FILE_LEN (sizeof(TEMP_FILE) - 1)
+ 
+-#if !defined(_WIN32) || defined(__CYGWIN__)
++#if !defined(_WIN32) || defined(__CYGWIN__) || defined(__DJGPP__)
+ 
+ /* Subroutine of choose_tmpdir.
+    If BASE is non-NULL, return it.
+    Otherwise it checks if DIR is a usable directory.
+    If success, DIR is returned.
+@@ -104,11 +119,11 @@ files in.
+ const char *
+ choose_tmpdir (void)
+ {
+   if (!memoized_tmpdir)
+     {
+-#if !defined(_WIN32) || defined(__CYGWIN__)
++#if !defined(_WIN32) || defined(__CYGWIN__) || defined(__DJGPP__)
+       const char *base = 0;
+       char *tmpdir;
+       unsigned int len;
+       
+ #ifdef VMS
+@@ -140,11 +155,12 @@ choose_tmpdir (void)
+       /* Append DIR_SEPARATOR to the directory we've chosen
+ 	 and return it.  */
+       len = strlen (base);
+       tmpdir = XNEWVEC (char, len + 2);
+       strcpy (tmpdir, base);
+-      tmpdir[len] = DIR_SEPARATOR;
++      if (len > 0 && !IS_DIR_SEPARATOR(tmpdir[len - 1]))
++        tmpdir[len] = DIR_SEPARATOR;
+       tmpdir[len+1] = '\0';
+       memoized_tmpdir = tmpdir;
+ #else /* defined(_WIN32) && !defined(__CYGWIN__) */
+       DWORD len;
+ 
+diff -aprNU5 binutils-2.34.orig/libiberty/pex-common.c binutils-2.34/libiberty/pex-common.c
+--- binutils-2.34.orig/libiberty/pex-common.c	2020-01-18 13:55:48 +0000
++++ binutils-2.34/libiberty/pex-common.c	2020-03-01 19:10:00 +0000
+@@ -115,11 +115,11 @@ temp_file (struct pex_obj *obj, int flag
+ 
+           if (len >= 6
+               && strcmp (obj->tempbase + len - 6, "XXXXXX") == 0)
+             name = xstrdup (obj->tempbase);
+           else
+-            name = concat (obj->tempbase, "XXXXXX", NULL);
++            name = concat (obj->tempbase, "XXXXXX", (char *)NULL);
+ 
+           out = mkstemps (name, 0);
+           if (out < 0)
+             {
+               free (name);
+@@ -136,11 +136,11 @@ temp_file (struct pex_obj *obj, int flag
+   else if ((flags & PEX_SUFFIX) != 0)
+     {
+       if (obj->tempbase == NULL)
+         name = make_temp_file (name);
+       else
+-        name = concat (obj->tempbase, name, NULL);
++        name = concat (obj->tempbase, name, (char *)NULL);
+     }
+ 
+   return name;
+ }
+ 
+@@ -220,11 +220,11 @@ pex_run_in_environment (struct pex_obj *
+     {
+       if (outname == NULL)
+ 	out = STDOUT_FILE_NO;
+       else if ((flags & PEX_SUFFIX) != 0)
+ 	{
+-	  outname = concat (obj->tempbase, outname, NULL);
++	  outname = concat (obj->tempbase, outname, (char *)NULL);
+ 	  outname_allocated = 1;
+ 	}
+       obj->next_input = -1;
+     }
+   else if ((obj->flags & PEX_USE_PIPES) == 0)
+diff -aprNU5 binutils-2.34.orig/libiberty/simple-object-coff.c binutils-2.34/libiberty/simple-object-coff.c
+--- binutils-2.34.orig/libiberty/simple-object-coff.c	2020-01-18 13:55:48 +0000
++++ binutils-2.34/libiberty/simple-object-coff.c	2020-03-01 19:10:00 +0000
+@@ -649,17 +649,17 @@ simple_object_coff_write_to_file (simple
+       new_offset = offset & mask;
+       new_offset &= ~ mask;
+       while (new_offset > offset)
+ 	{
+ 	  unsigned char zeroes[16];
+-	  size_t write;
++	  size_t lib_write;
+ 
+ 	  memset (zeroes, 0, sizeof zeroes);
+-	  write = new_offset - offset;
+-	  if (write > sizeof zeroes)
+-	    write = sizeof zeroes;
+-	  if (!simple_object_internal_write (descriptor, offset, zeroes, write,
++	  lib_write = new_offset - offset;
++	  if (lib_write > sizeof zeroes)
++	    lib_write = sizeof zeroes;
++	  if (!simple_object_internal_write (descriptor, offset, zeroes, lib_write,
+ 					     &errmsg, err))
+ 	    return errmsg;
+ 	}
+ 
+       scnsize = 0;
+diff -aprNU5 binutils-2.34.orig/libiberty/simple-object-elf.c binutils-2.34/libiberty/simple-object-elf.c
+--- binutils-2.34.orig/libiberty/simple-object-elf.c	2020-01-18 13:55:48 +0000
++++ binutils-2.34/libiberty/simple-object-elf.c	2020-03-01 19:10:00 +0000
+@@ -998,20 +998,20 @@ simple_object_elf_write_to_file (simple_
+       new_sh_offset = sh_offset + mask;
+       new_sh_offset &= ~ mask;
+       while (new_sh_offset > sh_offset)
+ 	{
+ 	  unsigned char zeroes[16];
+-	  size_t write;
++	  size_t lib_write;
+ 
+ 	  memset (zeroes, 0, sizeof zeroes);
+-	  write = new_sh_offset - sh_offset;
+-	  if (write > sizeof zeroes)
+-	    write = sizeof zeroes;
++	  lib_write = new_sh_offset - sh_offset;
++	  if (lib_write > sizeof zeroes)
++	    lib_write = sizeof zeroes;
+ 	  if (!simple_object_internal_write (descriptor, sh_offset, zeroes,
+-					     write, &errmsg, err))
++					     lib_write, &errmsg, err))
+ 	    return errmsg;
+-	  sh_offset += write;
++	  sh_offset += lib_write;
+ 	}
+ 
+       sh_size = 0;
+       for (buffer = section->buffers; buffer != NULL; buffer = buffer->next)
+ 	{
+diff -aprNU5 binutils-2.34.orig/libiberty/simple-object-mach-o.c binutils-2.34/libiberty/simple-object-mach-o.c
+--- binutils-2.34.orig/libiberty/simple-object-mach-o.c	2020-01-18 13:55:48 +0000
++++ binutils-2.34/libiberty/simple-object-mach-o.c	2020-03-01 19:10:00 +0000
+@@ -424,11 +424,11 @@ simple_object_mach_o_segment (simple_obj
+   unsigned int index_index;
+   unsigned int nametab_index;
+   unsigned int sections_index;
+   char *strtab;
+   char *nametab;
+-  unsigned char *index;
++  unsigned char *lib_index;
+   size_t strtab_size;
+   size_t nametab_size;
+   size_t index_size;
+   unsigned int n_wrapped_sects;
+   size_t wrapper_sect_size;
+@@ -544,17 +544,17 @@ simple_object_mach_o_segment (simple_obj
+       /* Fetch the index.  */
+ 
+       simple_object_mach_o_section_info (omr->is_big_endian, is_32,
+ 					 secdata + index_index * sechdrsize,
+ 					 &index_offset, &index_size);
+-      index = XNEWVEC (unsigned char, index_size);
++      lib_index = XNEWVEC (unsigned char, index_size);
+       if (!simple_object_internal_read (sobj->descriptor,
+ 					sobj->offset + index_offset,
+-					index, index_size,
++					lib_index, index_size,
+ 					errmsg, err))
+ 	{
+-	  XDELETEVEC (index);
++	  XDELETEVEC (lib_index);
+ 	  XDELETEVEC (nametab);
+ 	  XDELETEVEC (secdata);
+ 	  return 0;
+ 	}
+ 
+@@ -570,11 +570,11 @@ simple_object_mach_o_segment (simple_obj
+ 					 &wrapper_sect_offset,
+ 					 &wrapper_sect_size);
+     }
+   else
+     {
+-      index = NULL;
++      lib_index = NULL;
+       index_size = 0;
+       nametab = NULL;
+       nametab_size = 0;
+       n_wrapped_sects = 0;
+     }
+@@ -593,11 +593,11 @@ simple_object_mach_o_segment (simple_obj
+ 					sobj->offset + strtab_offset,
+ 					(unsigned char *) strtab, strtab_size,
+ 					errmsg, err))
+ 	{
+ 	  XDELETEVEC (strtab);
+-	  XDELETEVEC (index);
++	  XDELETEVEC (lib_index);
+ 	  XDELETEVEC (nametab);
+ 	  XDELETEVEC (secdata);
+ 	  return 0;
+ 	}
+     }
+@@ -643,24 +643,24 @@ simple_object_mach_o_segment (simple_obj
+ 	    {
+ 	      unsigned int j;
+ 	      for (j = 0; j < n_wrapped_sects; ++j)
+ 		{
+ 		  unsigned int subsect_offset, subsect_length, name_offset;
+-		  subsect_offset = (*fetch_32) (index + 16 * j);
+-		  subsect_length = (*fetch_32) (index + 16 * j + 4);
+-		  name_offset = (*fetch_32) (index + 16 * j + 8);
++		  subsect_offset = (*fetch_32) (lib_index + 16 * j);
++		  subsect_length = (*fetch_32) (lib_index + 16 * j + 4);
++		  name_offset = (*fetch_32) (lib_index + 16 * j + 8);
+ 		  /* We don't need the name_length yet.  */
+ 
+ 		  secoffset = wrapper_sect_offset + subsect_offset;
+ 		  secsize = subsect_length;
+ 		  name = nametab + name_offset;
+ 
+ 		  if (!(*pfn) (data, name, secoffset, secsize))
+ 		    {
+ 		      *errmsg = NULL;
+ 		      *err = 0;
+-		      XDELETEVEC (index);
++		      XDELETEVEC (lib_index);
+ 		      XDELETEVEC (nametab);
+ 		      XDELETEVEC (strtab);
+ 		      XDELETEVEC (secdata);
+ 		      return 0;
+ 		    }
+@@ -683,11 +683,11 @@ simple_object_mach_o_segment (simple_obj
+ 		{
+ 		  if (stringoffset >= strtab_size)
+ 		    {
+ 		      *errmsg = "section name offset out of range";
+ 		      *err = 0;
+-		      XDELETEVEC (index);
++		      XDELETEVEC (lib_index);
+ 		      XDELETEVEC (nametab);
+ 		      XDELETEVEC (strtab);
+ 		      XDELETEVEC (secdata);
+ 		      return 0;
+ 		    }
+@@ -715,19 +715,19 @@ simple_object_mach_o_segment (simple_obj
+ 
+       if (!(*pfn) (data, name, secoffset, secsize))
+ 	{
+ 	  *errmsg = NULL;
+ 	  *err = 0;
+-	  XDELETEVEC (index);
++	  XDELETEVEC (lib_index);
+ 	  XDELETEVEC (nametab);
+ 	  XDELETEVEC (strtab);
+ 	  XDELETEVEC (secdata);
+ 	  return 0;
+ 	}
+     }
+ 
+-  XDELETEVEC (index);
++  XDELETEVEC (lib_index);
+   XDELETEVEC (nametab);
+   XDELETEVEC (strtab);
+   XDELETEVEC (secdata);
+ 
+   return 1;
+@@ -1043,11 +1043,11 @@ simple_object_mach_o_write_segment (simp
+   unsigned int name_offset;
+   simple_object_write_section *section;
+   unsigned char hdrbuf[sizeof (struct mach_o_segment_command_64)];
+   unsigned char *hdr;
+   size_t nsects_in;
+-  unsigned int *index;
++  unsigned int *lib_index;
+   char *snames;
+   unsigned int sect;
+ 
+   set_32 = (attrs->is_big_endian
+ 	    ? simple_object_set_big_32
+@@ -1088,29 +1088,29 @@ simple_object_mach_o_write_segment (simp
+ 	 sections respectively.
+ 	 The values are stored as 32 bit int for both 32 and 64 bit mach-o
+ 	 since the size of a mach-o MH_OBJECT cannot exceed 4G owing to
+ 	 other constraints.  */
+ 
+-      index = XNEWVEC (unsigned int, nsects_in * 4);
++      lib_index = XNEWVEC (unsigned int, nsects_in * 4);
+ 
+       /* We now need to figure out the size of the names section.  This just
+ 	 stores the names as null-terminated c strings, packed without any
+ 	 alignment padding.  */
+ 
+       for (section = sobj->sections, sect = 0; section != NULL;
+ 	   section = section->next, sect++)
+ 	{
+-	  index[sect*4+2] = name_offset;
+-	  index[sect*4+3] = strlen (section->name) + 1;
++	  lib_index[sect*4+2] = name_offset;
++	  lib_index[sect*4+3] = strlen (section->name) + 1;
+ 	  name_offset += strlen (section->name) + 1;
+ 	}
+       snames = XNEWVEC (char, name_offset);
+     }
+   else
+     {
+       *nsects = nsects_in;
+-      index = NULL;
++      lib_index = NULL;
+       snames = NULL;
+     }
+ 
+   sechdr_offset = hdrsize + seghdrsize;
+   cmdsize = seghdrsize + *nsects * sechdrsize;
+@@ -1129,20 +1129,20 @@ simple_object_mach_o_write_segment (simp
+       new_offset = offset + mask;
+       new_offset &= ~ mask;
+       while (new_offset > offset)
+ 	{
+ 	  unsigned char zeroes[16];
+-	  size_t write;
++	  size_t lib_write;
+ 
+ 	  memset (zeroes, 0, sizeof zeroes);
+-	  write = new_offset - offset;
+-	  if (write > sizeof zeroes)
+-	    write = sizeof zeroes;
+-	  if (!simple_object_internal_write (descriptor, offset, zeroes, write,
++	  lib_write = new_offset - offset;
++	  if (lib_write > sizeof zeroes)
++	    lib_write = sizeof zeroes;
++	  if (!simple_object_internal_write (descriptor, offset, zeroes, lib_write,
+ 					     errmsg, err))
+ 	    return 0;
+-	  offset += write;
++	  offset += lib_write;
+ 	}
+ 
+       secsize = 0;
+       for (buffer = section->buffers; buffer != NULL; buffer = buffer->next)
+ 	{
+@@ -1154,15 +1154,15 @@ simple_object_mach_o_write_segment (simp
+ 	  secsize += buffer->size;
+ 	}
+ 
+       if (sobj->segment_name != NULL)
+ 	{
+-	  index[sect*4+0] = (unsigned int) offset;
+-	  index[sect*4+1] = secsize;
++	  lib_index[sect*4+0] = (unsigned int) offset;
++	  lib_index[sect*4+1] = secsize;
+ 	  /* Stash the section name in our table.  */
+-	  memcpy (snames + index[sect * 4 + 2], section->name,
+-		  index[sect * 4 + 3]);
++	  memcpy (snames + lib_index[sect * 4 + 2], section->name,
++		  lib_index[sect * 4 + 3]);
+ 	}
+       else
+ 	{
+ 	  char namebuf[MACH_O_NAME_LEN + 1];
+ 	  char segnbuf[MACH_O_NAME_LEN + 1];
+@@ -1205,27 +1205,27 @@ simple_object_mach_o_write_segment (simp
+ 
+       /* Write the section header for the wrapper.  */
+       /* Account for any initial aligment - which becomes the alignment for this
+ 	 created section.  */
+ 
+-      secsize = (offset - index[0]);
++      secsize = (offset - lib_index[0]);
+       if (!simple_object_mach_o_write_section_header (sobj, descriptor,
+ 						      sechdr_offset,
+ 						      GNU_WRAPPER_SECTS,
+ 						      sobj->segment_name,
+ 						      0 /*secaddr*/,
+-						      secsize, index[0],
++						      secsize, lib_index[0],
+ 						      sobj->sections->align,
+ 						      errmsg, err))
+ 	return 0;
+ 
+       /* Subtract the wrapper section start from the begining of each sub
+ 	 section.  */
+ 
+       for (i = 1; i < nsects_in; ++i)
+-	index[4 * i] -= index[0];
+-      index[0] = 0;
++	lib_index[4 * i] -= lib_index[0];
++      lib_index[0] = 0;
+ 
+       sechdr_offset += sechdrsize;
+ 
+       /* Write out the section names.
+ 	 ... the header ...
+@@ -1266,15 +1266,15 @@ simple_object_mach_o_write_segment (simp
+ 						      2, errmsg, err))
+ 	return 0;
+ 
+       /* ... and the content.. */
+       if (!simple_object_internal_write (descriptor, offset,
+-					 (const unsigned char *) index,
++					 (const unsigned char *) lib_index,
+ 					 nsects_in*16, errmsg, err))
+ 	return 0;
+ 
+-      XDELETEVEC (index);
++      XDELETEVEC (lib_index);
+       XDELETEVEC (snames);
+     }
+ 
+   /* Write out the segment header.  */
+ 
+diff -aprNU5 binutils-2.34.orig/libiberty/simple-object-xcoff.c binutils-2.34/libiberty/simple-object-xcoff.c
+--- binutils-2.34.orig/libiberty/simple-object-xcoff.c	2020-01-18 13:55:48 +0000
++++ binutils-2.34/libiberty/simple-object-xcoff.c	2020-03-01 19:10:00 +0000
+@@ -905,17 +905,17 @@ simple_object_xcoff_write_to_file (simpl
+       new_offset = offset & mask;
+       new_offset &= ~ mask;
+       while (new_offset > offset)
+ 	{
+ 	  unsigned char zeroes[16];
+-	  size_t write;
++	  size_t lib_write;
+ 
+ 	  memset (zeroes, 0, sizeof zeroes);
+-	  write = new_offset - offset;
+-	  if (write > sizeof zeroes)
+-	    write = sizeof zeroes;
+-	  if (!simple_object_internal_write (descriptor, offset, zeroes, write,
++	  lib_write = new_offset - offset;
++	  if (lib_write > sizeof zeroes)
++	    lib_write = sizeof zeroes;
++	  if (!simple_object_internal_write (descriptor, offset, zeroes, lib_write,
+ 					     &errmsg, err))
+ 	    return errmsg;
+ 	}
+ 
+       scnsize = 0;
+diff -aprNU5 binutils-2.34.orig/libiberty/simple-object.c binutils-2.34/libiberty/simple-object.c
+--- binutils-2.34.orig/libiberty/simple-object.c	2020-01-18 13:55:48 +0000
++++ binutils-2.34/libiberty/simple-object.c	2020-03-01 19:10:00 +0000
+@@ -258,40 +258,40 @@ simple_object_find_section (simple_objec
+    Returns non-NULL if NAME is a LTO debug section, NULL if not.
+    If RENAME is true it will rename LTO debug sections to non-LTO
+    ones.  */
+ 
+ static char *
+-handle_lto_debug_sections (const char *name, int rename)
++handle_lto_debug_sections (const char *name, int lib_rename)
+ {
+-  char *newname = rename ? XCNEWVEC (char, strlen (name) + 1)
++  char *newname = lib_rename ? XCNEWVEC (char, strlen (name) + 1)
+ 	  	         : xstrdup (name);
+ 
+   /* ???  So we can't use .gnu.lto_ prefixed sections as the assembler
+      complains about bogus section flags.  Which means we need to arrange
+      for that to be fixed or .gnu.debuglto_ marked as SHF_EXCLUDE (to make
+      fat lto object tooling work for the fat part).  */
+   /* Also include corresponding reloc sections.  */
+   if (strncmp (name, ".rela", sizeof (".rela") - 1) == 0)
+     {
+-      if (rename)
++      if (lib_rename)
+         strncpy (newname, name, sizeof (".rela") - 1);
+       name += sizeof (".rela") - 1;
+     }
+   else if (strncmp (name, ".rel", sizeof (".rel") - 1) == 0)
+     {
+-      if (rename)
++      if (lib_rename)
+         strncpy (newname, name, sizeof (".rel") - 1);
+       name += sizeof (".rel") - 1;
+     }
+   /* ???  For now this handles both .gnu.lto_ and .gnu.debuglto_ prefixed
+      sections.  */
+   /* Copy LTO debug sections and rename them to their non-LTO name.  */
+   if (strncmp (name, ".gnu.debuglto_", sizeof (".gnu.debuglto_") - 1) == 0)
+-    return rename ? strcat (newname, name + sizeof (".gnu.debuglto_") - 1) : newname;
++    return lib_rename ? strcat (newname, name + sizeof (".gnu.debuglto_") - 1) : newname;
+   else if (strncmp (name, ".gnu.lto_.debug_",
+ 		    sizeof (".gnu.lto_.debug_") -1) == 0)
+-    return rename ? strcat (newname, name + sizeof (".gnu.lto_") - 1) : newname;
++    return lib_rename ? strcat (newname, name + sizeof (".gnu.lto_") - 1) : newname;
+   /* Copy over .note.GNU-stack section under the same name if present.  */
+   else if (strcmp (name, ".note.GNU-stack") == 0)
+     return strcpy (newname, name);
+   /* Copy over .comment section under the same name if present.  Solaris
+      ld uses them to relax its checking of ELF gABI access rules for
+@@ -320,11 +320,11 @@ handle_lto_debug_sections_norename (cons
+ 
+ /* Copy LTO debug sections.  */
+ 
+ const char *
+ simple_object_copy_lto_debug_sections (simple_object_read *sobj,
+-				       const char *dest, int *err, int rename)
++				       const char *dest, int *err, int lib_rename)
+ {
+   const char *errmsg;
+   simple_object_write *dest_sobj;
+   simple_object_attributes *attrs;
+   int outfd;
+@@ -343,11 +343,11 @@ simple_object_copy_lto_debug_sections (s
+   if (! dest_sobj)
+     return errmsg;
+ 
+   errmsg = sobj->functions->copy_lto_debug_sections
+ 	 	 (sobj, dest_sobj,
+-		  rename ? handle_lto_debug_sections_rename
++		  lib_rename ? handle_lto_debug_sections_rename
+ 			 : handle_lto_debug_sections_norename,  err);
+   if (errmsg)
+     {
+       simple_object_release_write (dest_sobj);
+       return errmsg;
+diff -aprNU5 binutils-2.34.orig/libiberty/stack-limit.c binutils-2.34/libiberty/stack-limit.c
+--- binutils-2.34.orig/libiberty/stack-limit.c	2020-01-18 13:55:48 +0000
++++ binutils-2.34/libiberty/stack-limit.c	2020-03-01 19:10:00 +0000
+@@ -49,11 +49,11 @@ stack_limit_increase (unsigned long pref
+ #if defined(HAVE_SETRLIMIT) && defined(HAVE_GETRLIMIT) \
+     && defined(RLIMIT_STACK) && defined(RLIM_INFINITY)
+   struct rlimit rlim;
+   if (getrlimit (RLIMIT_STACK, &rlim) == 0
+       && rlim.rlim_cur != RLIM_INFINITY
+-      && rlim.rlim_cur < pref
++      && rlim.rlim_cur < (rlim_t) pref
+       && (rlim.rlim_max == RLIM_INFINITY || rlim.rlim_cur < rlim.rlim_max))
+     {
+       rlim.rlim_cur = pref;
+       if (rlim.rlim_max != RLIM_INFINITY && rlim.rlim_cur > rlim.rlim_max)
+ 	rlim.rlim_cur = rlim.rlim_max;
