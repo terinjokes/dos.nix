@@ -1,37 +1,9 @@
-{ stdenv
-, pkgs
-, lib
-, fetchFromGitHub
-, autoreconfHook
-, pkgconfig
-, flex
-, bison
-, libbsd
-, fdpp
-, hexdump
-, SDL2
-, slang
-, libX11
-, mkfontdir
-, bdftopcf
-, alsaLib
-, libao
-, readline
-, libslirp
-, glib
-, fluidsynth
-, soundfont-fluid
-, json_c
-, withSDL2 ? true
-, withSlang ? true
-, withALSA ? false
-, withX11 ? false
-, withLibAO ? false
-, withDOSDebug ? false
-, withSlirp ? false
-, withFluidsynth ? true
-, withJSONC ? true
-}:
+{ stdenv, pkgs, lib, fetchFromGitHub, autoreconfHook, pkgconfig, flex, bison
+, libbsd, fdpp, hexdump, comcom32, SDL2, slang, libX11, mkfontdir, bdftopcf
+, alsaLib, libao, readline, libslirp, glib, fluidsynth, soundfont-fluid, json_c
+, withSDL2 ? true, withSlang ? true, withALSA ? false, withX11 ? false
+, withLibAO ? false, withDOSDebug ? false, withSlirp ? false
+, withFluidsynth ? true, withJSONC ? true }:
 
 stdenv.mkDerivation rec {
   pname = "dosemu2";
@@ -53,6 +25,8 @@ stdenv.mkDerivation rec {
     platforms = [ "i686-linux" "x86_64-linux" ];
   };
 
+  enableParallelBuilding = true;
+
   src = fetchFromGitHub {
     owner = "dosemu2";
     repo = "dosemu2";
@@ -63,6 +37,7 @@ stdenv.mkDerivation rec {
   postPatch = ''
     substituteInPlace getversion --replace '$DATE' '1995-08-24'
     sed -i '71s;^;"${soundfont-fluid}/share/soundfonts/FluidR3_GM2-2.sf2",\n;' src/plugin/fluidsynth/mid_o_flus.c
+    sed -i '428s;^;"${comcom32}/share/comcom32",\n;' src/base/init/config.c
   '';
 
   autoreconfFlags = "-I m4";
@@ -74,11 +49,9 @@ stdenv.mkDerivation rec {
 
   nativeBuildInputs =
     [ pkgconfig autoreconfHook flex bison libbsd hexdump fdpp ]
-    ++ lib.optionals withSDL2 [ SDL2 ]
-    ++ lib.optionals withSlang [ slang ]
+    ++ lib.optionals withSDL2 [ SDL2 ] ++ lib.optionals withSlang [ slang ]
     ++ lib.optionals withX11 [ libX11 mkfontdir bdftopcf ]
-    ++ lib.optionals withALSA [ alsaLib ]
-    ++ lib.optionals withLibAO [ libao ]
+    ++ lib.optionals withALSA [ alsaLib ] ++ lib.optionals withLibAO [ libao ]
     ++ lib.optionals withDOSDebug [ readline ]
     ++ lib.optionals withSlirp [ libslirp glib ]
     ++ lib.optionals withFluidsynth [ fluidsynth ]

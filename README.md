@@ -28,14 +28,16 @@ in
 
 This overlay provides the following packages:
 
-| Package            | Description                          |
-| -------            | -----------                          |
-| [dosemu2][dosemu2] | DOS Emulator for Linux               |
-| [djgpp][djgpp]     | Cross-compiler targetting 32-bit DOS |
-| [fdpp][fdpp]       | A 64-bit DOS core                    |
+| Package              | Description                          |
+| -------              | -----------                          |
+| [comcom32][comcom32] | 32-bit command interpreter for DOS   |
+| [dosemu2][dosemu2]   | DOS Emulator for Linux               |
+| [djgpp][djgpp]       | Cross-compiler targetting 32-bit DOS |
+| [fdpp][fdpp]         | A 64-bit DOS core                    |
 
 
 [overlays]: https://nixos.wiki/wiki/Overlays
+[comcom32]: https://github.com/dosemu2/comcom32
 [dosemu2]: https://github.com/dosemu2/dosemu2
 [djgpp]: http://www.delorie.com/djgpp/
 [fdpp]: https://github.com/dosemu2/fdpp
