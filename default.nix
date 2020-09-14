@@ -16,7 +16,7 @@ rec {
     };
     gcc = self.callPackage ./djgpp/gcc {
       binutils = djgpp.binutils;
-      djcrx = djgpp.gjcrx;
+      djcrx = djgpp.djcrx;
     };
   };
   comcom32 = self.callPackage ./comcom32 {
