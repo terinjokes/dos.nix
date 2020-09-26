@@ -1,9 +1,11 @@
 { stdenv, pkgs, lib, fetchFromGitHub, autoreconfHook, pkgconfig, flex, bison
 , libbsd, fdpp, hexdump, comcom32, SDL2, slang, libX11, mkfontdir, bdftopcf
-, alsaLib, libao, readline, libslirp, glib, fluidsynth, soundfont-fluid, json_c
-, withSDL2 ? true, withSlang ? true, withALSA ? false, withX11 ? false
+, alsaLib, libao, readline, libslirp ? null, glib, fluidsynth, soundfont-fluid
+, json_c, withSDL2 ? true, withSlang ? true, withALSA ? false, withX11 ? false
 , withLibAO ? false, withDOSDebug ? false, withSlirp ? false
 , withFluidsynth ? true, withJSONC ? true }:
+
+assert withSlirp -> libslirp != null;
 
 stdenv.mkDerivation rec {
   pname = "dosemu2";

@@ -1,0 +1,27 @@
+name: build
+on:
+  - pull_request
+  - push
+jobs:
+  build-unstable:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - uses: nixbuild/nix-quick-install-action@v2
+      - uses: nixbuild/nixbuild-action@v1
+        with:
+          nixbuild_ssh_key: ${{ secrets.nixbuild_ssh_key }}
+      - run: nix build -f ./hack/build.nix
+        env:
+          NIX_CHANNEL: master
+  build-2003:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - uses: nixbuild/nix-quick-install-action@v2
+      - uses: nixbuild/nixbuild-action@v1
+        with:
+          nixbuild_ssh_key: ${{ secrets.nixbuild_ssh_key }}
+      - run: nix build -f ./hack/build.nix
+        env:
+          NIX_CHANNEL: release-20.03

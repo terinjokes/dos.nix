@@ -7,7 +7,7 @@ stdenv.mkDerivation rec {
   meta = with lib; {
     description = "GNU Compiler Collection, version 10.2.0 (DJGPP version)";
     homepage = "https://gcc.gnu.org/";
-    licenses = [ gpl3Only licenses.lgpl3Only ];
+    licenses = [ licenses.gpl3 licenses.lgpl3 ];
     maintainers = [{
       email = "terinjokes@gmail.com";
       github = "terinjokes";

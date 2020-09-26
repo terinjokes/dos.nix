@@ -11,7 +11,7 @@ clangStdenv.mkDerivation rec {
       fdpp ("FreeDOS plus-plus") is a user-space library that can run DOS programs.
     '';
     homepage = "https://github.com/dosemu2/fdpp";
-    license = licenses.gpl3Only;
+    licenses = [ licenses.gpl3 ];
     maintainers = [{
       email = "terinjokes@gmail.com";
       github = "terinjokes";

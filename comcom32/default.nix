@@ -7,7 +7,7 @@ stdenv.mkDerivation rec {
   meta = with lib; {
     description = "32-bit command interpreter for dosemu2 and fdpp";
     homepage = "https://github.com/dosemu2/comcom32";
-    licenses = gpl3Only;
+    licenses = [ licenses.gpl3 ];
     maintainers = [{
       email = "terinjokes@gmail.com";
       github = "terinjokes";

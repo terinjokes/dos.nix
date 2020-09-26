@@ -8,7 +8,7 @@ stdenv.mkDerivation {
     description =
       "Headers and utilities for the djgpp cross-compiler (bootstrap)";
     homepage = "http://www.delorie.com/djgpp/";
-    licenses = [ licenses.gpl2Only licenses.lgpl21Only ];
+    licenses = [ licenses.gpl2 licenses.lgpl21 ];
     maintainers = [{
       email = "terinjokes@gmail.com";
       github = "terinjokes";
